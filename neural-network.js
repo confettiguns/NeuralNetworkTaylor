@@ -219,3 +219,183 @@ class NeuralNetwork {
         this.currentLoss = loss / outputLayer.length;
         this.currentAccuracy = correct / outputLayer.length;
     }
+    
+    simulateBackpropagation() {
+        // Simulate weight updates with some randomness
+        for (const connection of this.connections) {
+            if (connection.active) {
+                // Simulate weight adjustment
+                const adjustment = (Math.random() - 0.5) * this.learningRate;
+                connection.weight += adjustment;
+                
+                // Keep weights in reasonable range
+                connection.weight = Math.max(-2, Math.min(2, connection.weight));
+            }
+            
+            // Fade connection pulse
+            if (connection.pulse > 0) {
+                connection.pulse -= 0.05;
+                if (connection.pulse < 0) connection.pulse = 0;
+            }
+            
+            connection.active = false;
+        }
+        
+        // Update biases
+        for (const layer of this.layers) {
+            for (const neuron of layer) {
+                neuron.bias += (Math.random() - 0.5) * this.learningRate * 0.1;
+            }
+        }
+    }
+    
+    draw(ctx, connectionVisibility) {
+        // Draw connections
+        for (const connection of this.connections) {
+            this.drawConnection(ctx, connection, connectionVisibility);
+        }
+        
+        // Draw neurons
+        for (const layer of this.layers) {
+            for (const neuron of layer) {
+                this.drawNeuron(ctx, neuron);
+            }
+        }
+    }
+    
+    drawConnection(ctx, connection, visibility) {
+        const from = connection.from;
+        const to = connection.to;
+        
+        // Calculate opacity based on weight and pulse
+        const weight = Math.abs(connection.weight);
+        const pulse = connection.pulse;
+        const baseOpacity = (visibility / 100) * 0.3;
+        const opacity = baseOpacity + weight * 0.3 + pulse * 0.4;
+        
+        // Color based on weight
+        let color;
+        if (connection.weight > 0) {
+            color = this.theme.connection;
+        } else {
+            color = '#ff7e5f'; // Negative weights in orange
+        }
+        
+        // Draw line
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        
+        // Create gradient along the line
+        const gradient = ctx.createLinearGradient(from.x, from.y, to.x, to.y);
+        gradient.addColorStop(0, this.hexToRgba(color, opacity * 0.7));
+        gradient.addColorStop(1, this.hexToRgba(color, opacity));
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 0.5 + weight * 2 + pulse * 2;
+        ctx.stroke();
+        
+        // Draw pulse effect if active
+        if (pulse > 0) {
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(to.x, to.y);
+            ctx.strokeStyle = this.hexToRgba('#ffffff', pulse * 0.5);
+            ctx.lineWidth = 1 + pulse * 3;
+            ctx.stroke();
+        }
+    }
+    
+    drawNeuron(ctx, neuron) {
+        const radius = 8 + neuron.activation * 12;
+        
+        // Draw glow effect
+        const gradient = ctx.createRadialGradient(
+            neuron.x, neuron.y, radius * 0.5,
+            neuron.x, neuron.y, radius * 2
+        );
+        gradient.addColorStop(0, this.hexToRgba(this.theme.neuron, 0.8));
+        gradient.addColorStop(1, this.hexToRgba(this.theme.neuron, 0));
+        
+        ctx.beginPath();
+        ctx.arc(neuron.x, neuron.y, radius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw neuron body
+        ctx.beginPath();
+        ctx.arc(neuron.x, neuron.y, radius, 0, Math.PI * 2);
+        
+        // Create gradient fill
+        const neuronGradient = ctx.createRadialGradient(
+            neuron.x - radius/3, neuron.y - radius/3, 0,
+            neuron.x, neuron.y, radius
+        );
+        neuronGradient.addColorStop(0, this.hexToRgba('#ffffff', 0.8));
+        neuronGradient.addColorStop(1, this.theme.neuron);
+        
+        ctx.fillStyle = neuronGradient;
+        ctx.fill();
+        
+        // Draw neuron border
+        ctx.strokeStyle = this.hexToRgba('#ffffff', 0.5);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Draw activation indicator
+        if (neuron.activation > 0.3) {
+            ctx.beginPath();
+            ctx.arc(neuron.x, neuron.y, radius * 0.7, 0, Math.PI * 2 * neuron.activation);
+            ctx.strokeStyle = this.hexToRgba('#ffffff', 0.8);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+    
+    hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    
+    setComplexity(value) {
+        this.complexity = value;
+        this.initNetwork();
+        this.generateTrainingData();
+    }
+    
+    setLearningRate(value) {
+        this.learningRate = value;
+    }
+    
+    setActivationFunction(func) {
+        this.activationFunction = func;
+    }
+    
+    setTheme(theme) {
+        this.theme = theme;
+    }
+    
+    updateDimensions(width, height) {
+        this.width = width;
+        this.height = height;
+        this.initNetwork();
+    }
+    
+    getCurrentLoss() {
+        return this.currentLoss;
+    }
+    
+    getCurrentAccuracy() {
+        return this.currentAccuracy;
+    }
+    
+    reset() {
+        this.initNetwork();
+        this.generateTrainingData();
+        this.trainingStep = 0;
+        this.currentLoss = 0.5;
+        this.currentAccuracy = 0.2;
+    }
+}
