@@ -3,123 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Neural Network</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Visual Neural Network - Interactive & Reactive</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1><i class="fas fa-brain"></i> Visual Neural Network</h1>
-            <p class="subtitle">Interactive Neural Network Visualization & Training</p>
-        </header>
-
-        <div class="main-content">
-            <div class="left-panel">
-                <div class="control-panel">
-                    <h2><i class="fas fa-sliders-h"></i> Network Configuration</h2>
-                    
-                    <div class="form-group">
-                        <label for="layers"><i class="fas fa-layer-group"></i> Network Architecture</label>
-                        <input type="text" id="layers" value="3,4,2" placeholder="e.g., 3,4,2">
-                        <small>Comma-separated neuron counts per layer</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="activation"><i class="fas fa-wave-square"></i> Activation Function</label>
-                        <select id="activation">
-                            <option value="sigmoid">Sigmoid</option>
-                            <option value="relu">ReLU</option>
-                            <option value="tanh">Tanh</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="learningRate"><i class="fas fa-tachometer-alt"></i> Learning Rate</label>
-                        <input type="range" id="learningRate" min="0.001" max="1" step="0.001" value="0.1">
-                        <span id="lrValue">0.1</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="epochs"><i class="fas fa-redo"></i> Training Epochs</label>
-                        <input type="number" id="epochs" min="1" max="10000" value="1000">
-                    </div>
-                    
-                    <div class="button-group">
-                        <button id="createNetwork" class="btn btn-primary">
-                            <i class="fas fa-plus-circle"></i> Create Network
-                        </button>
-                        <button id="trainNetwork" class="btn btn-success">
-                            <i class="fas fa-play-circle"></i> Train Network
-                        </button>
-                        <button id="resetNetwork" class="btn btn-warning">
-                            <i class="fas fa-undo"></i> Reset
-                        </button>
-                    </div>
+            <p class="subtitle">Interactive visualization with real-time training & particle effects</p>
+            <div class="stats-bar">
+                <div class="stat">
+                    <span class="stat-label">Iteration:</span>
+                    <span id="iteration-count" class="stat-value">0</span>
                 </div>
-                
-                <div class="training-stats">
-                    <h3><i class="fas fa-chart-line"></i> Training Statistics</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="stat-label">Current Loss</span>
-                            <span id="currentLoss" class="stat-value">0.0000</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Accuracy</span>
-                            <span id="accuracy" class="stat-value">0%</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Epoch</span>
-                            <span id="epoch" class="stat-value">0/0</span>
-                        </div>
+                <div class="stat">
+                    <span class="stat-label">Loss:</span>
+                    <span id="loss-value" class="stat-value">0.00</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Accuracy:</span>
+                    <span id="accuracy-value" class="stat-value">0%</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">FPS:</span>
+                    <span id="fps-counter" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Neurons:</span>
+                    <span id="neuron-count" class="stat-value">0</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="visualization-container">
+                <canvas id="neuralCanvas"></canvas>
+                <canvas id="particleCanvas"></canvas>
+                <div class="visualization-overlay">
+                    <div class="training-status">
+                        <span id="training-status">Training: Active</span>
+                        <div class="status-indicator active"></div>
                     </div>
-                    <div class="loss-chart-container">
-                        <canvas id="lossChart"></canvas>
-                    </div>
+                    <button id="toggle-training" class="btn-control">
+                        <i class="fas fa-pause"></i> Pause Training
+                    </button>
                 </div>
             </div>
             
-            <div class="visualization-area">
-                <div class="network-visualization" id="networkCanvas">
-                    <canvas id="networkCanvasElement"></canvas>
-                </div>
+            <div class="controls-container">
+                <h2 class="controls-title"><i class="fas fa-sliders-h"></i> Network Controls</h2>
                 
-                <div class="data-visualization">
-                    <h3><i class="fas fa-chart-scatter"></i> Data Visualization</h3>
-                    <div class="chart-container">
-                        <canvas id="dataChart"></canvas>
+                <div class="control-group">
+                    <label class="control-label">Network Complexity</label>
+                    <div class="slider-container">
+                        <input type="range" id="complexity-slider" min="1" max="10" value="4" class="slider">
+                        <span id="complexity-value" class="slider-value">4</span>
+                    </div>
+                    <div class="slider-labels">
+                        <span>Simple</span>
+                        <span>Complex</span>
                     </div>
                 </div>
                 
-                <div class="io-panel">
-                    <div class="input-section">
-                        <h4><i class="fas fa-keyboard"></i> Test Input</h4>
-                        <div class="input-group">
-                            <input type="text" id="testInput" placeholder="e.g., 0.5, 0.3, 0.8">
-                            <button id="predictBtn" class="btn btn-info">
-                                <i class="fas fa-bolt"></i> Predict
-                            </button>
+                <div class="control-group">
+                    <label class="control-label">Learning Rate</label>
+                    <div class="slider-container">
+                        <input type="range" id="learning-rate-slider" min="0.001" max="0.1" step="0.001" value="0.01" class="slider">
+                        <span id="learning-rate-value" class="slider-value">0.01</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Animation Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="speed-slider" min="1" max="10" value="5" class="slider">
+                        <span id="speed-value" class="slider-value">5</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Particle Intensity</label>
+                    <div class="slider-container">
+                        <input type="range" id="particle-slider" min="10" max="500" value="150" class="slider">
+                        <span id="particle-value" class="slider-value">150</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Connection Visibility</label>
+                    <div class="slider-container">
+                        <input type="range" id="connection-slider" min="0" max="100" value="80" class="slider">
+                        <span id="connection-value" class="slider-value">80%</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Activation Function</label>
+                    <select id="activation-select" class="dropdown">
+                        <option value="sigmoid">Sigmoid</option>
+                        <option value="relu">ReLU</option>
+                        <option value="tanh">Tanh</option>
+                        <option value="leakyRelu">Leaky ReLU</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Color Theme</label>
+                    <select id="theme-select" class="dropdown">
+                        <option value="neural">Neural Blue</option>
+                        <option value="synth">Synthwave</option>
+                        <option value="fire">Fire</option>
+                        <option value="ice">Ice</option>
+                        <option value="matrix">Matrix</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button id="reset-network" class="btn-control warning">
+                        <i class="fas fa-redo"></i> Reset Network
+                    </button>
+                    <button id="export-network" class="btn-control">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-subtitle">Network Architecture</h3>
+                    <div class="architecture-display">
+                        <div class="layer-info">
+                            <span>Input Layer:</span>
+                            <span id="input-layer">8 neurons</span>
                         </div>
-                        <div class="output-display">
-                            <h4>Prediction Output:</h4>
-                            <div id="predictionOutput" class="output-value">[0.0, 0.0]</div>
+                        <div class="layer-info">
+                            <span>Hidden Layers:</span>
+                            <span id="hidden-layers">2 layers</span>
+                        </div>
+                        <div class="layer-info">
+                            <span>Output Layer:</span>
+                            <span id="output-layer">4 neurons</span>
                         </div>
                     </div>
+                </div>
+                
+                <div class="info-box">
+                    <h3><i class="fas fa-info-circle"></i> How It Works</h3>
+                    <p>This visualization shows a neural network training in real-time. Neurons fire based on activation, and connections show weight strength. Adjust parameters to see how the network responds.</p>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Visual Neural Network - Runs completely in your browser. No server required!</p>
-            <p class="instructions">
-                <i class="fas fa-info-circle"></i> 
-                Instructions: 1) Configure network 2) Click "Create Network" 3) Click "Train Network"
-            </p>
+            <p>Visual Neural Network Simulation | Made with <i class="fas fa-heart" style="color:#ff7e5f"></i> and complex computations</p>
         </footer>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="particle-system.js"></script>
+    <script src="neural-network.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
